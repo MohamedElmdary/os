@@ -13,6 +13,7 @@ import io.palaima.smoothbluetooth.SmoothBluetooth;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String mAddress = "20:15:11:23:82:28";
     private SmoothBluetooth mSmoothBluetooth;
     private class MoveButton {
         public Button btn;
@@ -31,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
                 mSmoothBluetooth.send(instance.action);
             }
         });
+    }
+
+    void toggleButtonsVisiblity(final Boolean show) {
+        for (int i = 0, max = btns.length; i < max; btns[i++].btn.setVisibility(show ? View.VISIBLE : View.INVISIBLE));
     }
 
     @Override
@@ -59,22 +64,24 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onConnecting(Device device) {}
+                    public void onConnecting(Device device) {
+
+                    }
 
 
                     @Override
                     public void onConnected(final Device device) {
-                        for (int i = 0; i < 4; addEventListener(btns[i++]));
+                        for (int i = 0, max = btns.length; i < max; addEventListener(btns[i++]));
                     }
 
                     @Override
                     public void onDisconnected() {
-
+                        for (int i = 0, max = btns.length; i < max; btns[i++].btn.setOnClickListener(null));
                     }
 
                     @Override
                     public void onConnectionFailed(Device device) {
-
+                        Toast.makeText(MainActivity.this, "Some thing went wrong while connecting!", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -95,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDevicesFound(List<Device> deviceList, SmoothBluetooth.ConnectionCallback connectionCallback) {
                         for (int i = 0; i < deviceList.size(); i++) {
-                                if (deviceList.get(i).getAddress().equals("20:15:11:23:82:28")) {
+                                if (deviceList.get(i).getAddress().equals(mAddress)) {
                                      connectionCallback.connectTo(deviceList.get(i));
                                      break;
                                 }
@@ -103,9 +110,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onDataReceived(int data) {
-
-                    }
+                    public void onDataReceived(int data) { /* won't happen on our case! */ }
                 });
 
         mSmoothBluetooth.tryConnection();
