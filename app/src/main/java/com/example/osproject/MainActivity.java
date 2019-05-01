@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
             this.action = action;
         }
     }
-    private int reconnect = 0;
     private MoveButton[] btns = new MoveButton[4];
     private ConstraintLayout load, controller;
     private TextView loading, error;
@@ -225,27 +224,27 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onDiscoveryFinished() {
-//                        hideAll();
-//                        Toast.makeText(MainActivity.this, "Searching completed!", Toast.LENGTH_SHORT).show();
+                        hideAll();
+                        Toast.makeText(MainActivity.this, "Searching completed!", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onNoDevicesFound() {
                         hideAll();
-                        if (reconnect < 2) {
-                            showError("No device was found!", ErrorTypes.WARNING);
-                            again.setVisibility(View.VISIBLE);
-                            again.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    reconnect += 1;
+                        showError("No device was found!", ErrorTypes.WARNING);
+                        again.setVisibility(View.VISIBLE);
+                        again.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                try {
                                     mSmoothBluetooth.tryConnection();
                                     mSmoothBluetooth.doDiscovery();
+                                } catch (Exception e) {
+                                    onNoDevicesFound();
+                                    showError("Something went wrong while reconnecting!", ErrorTypes.ERROR);
                                 }
-                            });
-                        } else {
-                            showError("You did 3 tries Please restart the app it might fix the problem!", ErrorTypes.ERROR);
-                        }
+                            }
+                        });
                     }
 
                     @Override
