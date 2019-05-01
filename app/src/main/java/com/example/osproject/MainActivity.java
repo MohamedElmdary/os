@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
             this.action = action;
         }
     }
+    private int reconnect = 0;
     private MoveButton[] btns = new MoveButton[4];
     private ConstraintLayout load, controller;
     private TextView loading, error;
@@ -82,11 +83,11 @@ public class MainActivity extends AppCompatActivity {
         switch (type) {
             case ERROR:
                 txt = "Error: " + txt;
-                error.setTextColor(Color.RED);
+                error.setTextColor(Color.parseColor("#ff3d00"));
                 break;
             case WARNING:
                 txt = "Warning: " + txt;
-                error.setTextColor(Color.YELLOW);
+                error.setTextColor(Color.parseColor("#fbc02d"));
                 break;
             default:
                 return;
@@ -134,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
         error.setVisibility(View.INVISIBLE);
         again.setVisibility(View.INVISIBLE);
         again.setOnClickListener(null);
+        enablebt.setVisibility(View.INVISIBLE);
+        enablebt.setOnClickListener(null);
     }
 
     @Override
@@ -151,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         loading = findViewById(R.id.loading);
         error = findViewById(R.id.error);
         again = findViewById(R.id.again);
+        enablebt = findViewById(R.id.enablebt);
 
 
         mSmoothBluetooth = new SmoothBluetooth(
@@ -168,6 +172,14 @@ public class MainActivity extends AppCompatActivity {
                     public void onBluetoothNotEnabled() {
                         hideAll();
                         showError("Please enable your blueTooth.", ErrorTypes.WARNING);
+                        enablebt.setVisibility(View.VISIBLE);
+                        enablebt.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                                mBluetoothAdapter.enable();
+                            }
+                        });
                     }
 
                     @Override
@@ -213,22 +225,27 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onDiscoveryFinished() {
-                        hideAll();
-                        Toast.makeText(MainActivity.this, "Searching completed!", Toast.LENGTH_SHORT).show();
+//                        hideAll();
+//                        Toast.makeText(MainActivity.this, "Searching completed!", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onNoDevicesFound() {
                         hideAll();
-                        showError("No device was found!", ErrorTypes.WARNING);
-                        again.setVisibility(View.VISIBLE);
-                        again.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mSmoothBluetooth.tryConnection();
-                                mSmoothBluetooth.doDiscovery();
-                            }
-                        });
+                        if (reconnect < 2) {
+                            showError("No device was found!", ErrorTypes.WARNING);
+                            again.setVisibility(View.VISIBLE);
+                            again.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    reconnect += 1;
+                                    mSmoothBluetooth.tryConnection();
+                                    mSmoothBluetooth.doDiscovery();
+                                }
+                            });
+                        } else {
+                            showError("You did 3 tries Please restart the app it might fix the problem!", ErrorTypes.ERROR);
+                        }
                     }
 
                     @Override
